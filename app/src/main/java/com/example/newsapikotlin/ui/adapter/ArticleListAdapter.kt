@@ -12,6 +12,11 @@ import kotlinx.android.synthetic.main.item_article_list.view.*
 
 class ArticleListAdapter (var articleList: List<Article> = ArrayList()):
     RecyclerView.Adapter<ArticleListAdapter.ArticleViewHolder>() {
+     var mClickLister: ClickLister? = null
+
+    fun setOnClickListener (clickLister: ClickLister){
+        this.mClickLister = clickLister
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ArticleViewHolder {
             var view = LayoutInflater.from(parent.context)
@@ -33,10 +38,14 @@ class ArticleListAdapter (var articleList: List<Article> = ArrayList()):
     }
 
     inner class ArticleViewHolder(itemView : View):
-        RecyclerView.ViewHolder(itemView){
+        RecyclerView.ViewHolder(itemView ), View.OnClickListener{
 
         private var view: View = itemView
         private lateinit var  article: Article
+
+        init {
+            itemView.setOnClickListener(this)
+        }
 
         fun bindArticle(article: Article){
             this.article = article
@@ -49,8 +58,14 @@ class ArticleListAdapter (var articleList: List<Article> = ArrayList()):
             view.articleDate.text = toSimpleString(article.publishedAt)    //function
         }
 
+        override fun onClick(v: View?) {
+            mClickLister?. onClick(article)
+        }
+
     }
 
-
+    interface ClickLister{
+        fun onClick(article: Article)
+    }
 
 }

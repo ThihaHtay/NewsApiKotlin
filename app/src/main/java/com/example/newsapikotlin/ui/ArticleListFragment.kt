@@ -2,6 +2,7 @@ package com.example.newsapikotlin.ui
 
 
 import android.os.Bundle
+import android.text.TextUtils
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -12,15 +13,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 import com.example.newsapikotlin.R
+import com.example.newsapikotlin.model.Article
 import com.example.newsapikotlin.model.ArticleResult
 import com.example.newsapikotlin.ui.adapter.ArticleListAdapter
 import com.example.newsapikotlin.viewmodel.ArticleViewModel
+import com.example.newsapikotlin.viewmodel.SelectedArticleViewModel
 import kotlinx.android.synthetic.main.fragment_article_list.*
 
 /**
  * A simple [Fragment] subclass.
  */
-class ArticleListFragment : Fragment() {
+class ArticleListFragment : Fragment(),ArticleListAdapter.ClickLister {
 
     private lateinit var articleListAdapter: ArticleListAdapter
     private lateinit var viewManager: RecyclerView.LayoutManager
@@ -41,6 +44,7 @@ class ArticleListFragment : Fragment() {
         articleListAdapter = ArticleListAdapter()
         recyclerView.adapter = articleListAdapter
         recyclerView.layoutManager = viewManager
+        articleListAdapter.setOnClickListener(this)
         observeViewModel()
 
     }
@@ -71,6 +75,8 @@ class ArticleListFragment : Fragment() {
         )
         articleViewModel.getLoading().observe(
             this, Observer<Boolean> {isLoading ->
+                loadingView.visibility = (if (isLoading)
+                        View.VISIBLE else View.INVISIBLE)
                 if (isLoading){
                     txtError.visibility = View.GONE
                     recyclerView.visibility =View.GONE
@@ -83,6 +89,18 @@ class ArticleListFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         articleViewModel.loadResults()
+    }
+
+    override fun onClick(article: Article) {
+        if (!TextUtils.isEmpty(article.url)){
+            val selectedArticleViewModel : SelectedArticleViewModel =
+                ViewModelProviders.of(activity!!).get(SelectedArticleViewModel::class.java)
+            selectedArticleViewModel.selectedArticle(article)
+            activity!!.supportFragmentManager.beginTransaction()
+                .replace(R.id.screen_container,DetailsFragment())
+                .addToBackStack(null)
+                .commit()
+        }
     }
 
 }
